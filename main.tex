@@ -1,0 +1,242 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+
+\usepackage{enumerate}
+\usepackage{amsmath} % Tillater avansert formatering av matte.
+\usepackage{amsfonts} % Tillater avanserte teikn, som R for reelle tall.
+\usepackage{graphicx} % Tillater mer avansert formatering av grafikk.
+\usepackage{geometry} % Tillater enklere formatering av sidevisning.
+\usepackage{physics}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\setlength\parindent{0pt}
+
+
+
+\title{Project 2}
+\author{Johanne Mehren, Marit Kollstuen, Stine Sagen}
+\date{September 2018}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+    
+\end{abstract}
+
+
+\section{Introduction}
+
+This project is an attempt to develop an algorithm for solving eigenvalue problems of tridiagonal matrix systems. The Toeplitz matrix is a type of tridiagonal matrix that have analytical eigenpairs. The algorithm applies Jacbi's method for solving eigenvalue problems, which will be thoroughly explained in the Theory section. We can then test the result of the algorithm compared to the analytic solutions by applying unit tests.
+
+\medskip
+
+The problems we are trying to solve are two-point boundary value problems of a spring fastened at both ends, which have analytical solutions. Specifically, we are studying harmonic oscillator problems in three dimensions with one or two electrons. First, we will develop an algorithm for solving the Buckling Beam problem (Section \ref{sec:bbp}). Secondly, we will apply the same algorithm on a quantum mechanical problem that concerns the radial part of Schroedinger's equation (Equation \ref{eq:schr}) for one electron (Section \ref{sec:schr})
+
+\medskip
+
+The Results- section (Section \ref{sec:res}) contains the comparison of our calculations and the analytical results. The efficiency of our algorithm in terms of time is also considered. 
+
+\medskip
+
+Our motivation for the project is to understand the advantages of solving differential equations by matrix operations. Since none of us are familiar with quantum mechanics, we use this project to learn more about other fields of physics and how we can implement this to boundary value problems in meteroroly. 
+
+\section{Theory}
+
+\subsection{Orthogonal transformation} %% Task 2 a)
+
+The main idea of orthogonal transformations is to rotate a vector about the origin and represent the same vector in a rotated coordinate system. Orthogonal transformations preserve the orthogonality of the obtained eigenvectors.  This can be shown by considering a basis of a vector $\textbf{v}_i$, where:
+
+\[
+\textbf{v}_i = 
+\begin{bmatrix}
+    v_{i1}&\\...&\\...&\\ v_{in}
+\end{bmatrix}
+\]
+
+We assume that the basis is orthogonal, so that $\textbf{v}_j^T\textbf{v}_i = \delta_{ij}$. For an orthogonal (unitary) transformation, we have:  $\textbf{w}_i & = \textbf{U}\textbf{v}_i$, in which $\textbf{U}$ is a unitary, orthogonal matrix so that $\textbf{U}^{-1} = \textbf{U}^T$ and $\textbf{U}^T\textbf{U} = \delta_{ij}$. The preservation of the dot product and orthogonality by unitary transformation of the vectors $\textbf{v}_i$ can then be shown by:
+
+\begin{align*}
+    \textbf{w}_i & = \textbf{U}\textbf{v}_i \\
+    \textbf{w}_j^T\textbf{w}_i & = (\textbf{U}\textbf{v}_i)^T(\textbf{U}\textbf{v}_i) \\
+    & = \textbf{v}_j^T\textbf{U}^T\textbf{U}\textbf{v}_i \\
+    & = \textbf{v}_j^T \textit{\textbf{I}}  \textbf{v}_i \\
+    & = \delta_{ij}
+\end{align*}
+
+
+\subsection{Jacobi's rotation method}
+To solve the eigenvalue problem
+\begin{equation}
+    Au = \lambda u
+    \label{eq:eigen}
+\end{equation}
+we can implement the Jacobi's rotation algorithm to a tridiagonal Toeplitz matrix. By applying the Jacobi rotation matrix $\textbf{S}_{kl}$:
+
+
+\[
+\textbf{S} = 
+\begin{bmatrix}
+    1 & 0 & ... & 0 & 0 & ... & 0 & 0 \\
+    0 & 1 & ... & 0 & 0 & ... & 0 & 0 \\
+    ... & ... & ... & 0 & 0 & ... & ... & ... \\
+    0 & 0 & ... & \cos\theta & 0 & ... & 0 & \sin\theta \\
+    0 & 0 & ... & 0 & 1 & ... & 0 & 0 \\
+    ... & ... & ... & ... & ... & ... & 0 & ... \\
+    0 & 0 & ... & 0 & 0 & ... & 1 & 0 \\
+    0 & 0 & ... & -\sin\theta & 0 & ... & 0 & \cos\theta \\
+\end{bmatrix}
+\]
+
+That contains ones along the diagonal except for two elements $\cos\theta$ in rows and columns $k$ and $l$. The off-diagonal elements are zero except the elements $\sin\theta$ and $-\sin\theta$. The matrix  $\textbf{S}_{kl}$ has the property $\textbf{S}^T = \textbf{S}^{-1}$. It performs a plane rotation around an angle $\theta$ until the matrix $\textbf{A}$ becomes almost diagonal, i.e. the non-diagonal elements are zero. The elements in the diagonal are approximations of the eigenvalues of $\textbf{A}$.
+
+\subsection{One electron case in three dimensions}
+Few one-electron problems in quantum mechanics can be solved analytically. We will now consider a system with Coulomb correlations which has an exact solution by first evaluating one single electron in three dimension. The electron moves has a harmonic oscillator potential. The radial part of Schrodinger's equation in spherical coordinates is: 
+
+\begin{equation}
+    -\frac{\hslash^2}{2m}\Big(\frac{1}{r^2}\frac{d}{dr}r^2\frac{d}{dr}-\frac{1(l+1)}{r^2}\Big)R(r) + V(r)R(r) = ER(r)
+    \label{eq:schr}
+\end{equation}
+
+In which $V(r)$ is the harmonic oscillator potential, $(1/2)kr^2$ with $k = m\omega^2$ and $E$ is the energy of the harmonic oscillator in three dimensions.
+
+\medskip
+
+Let $\omega$ be the oscillator frequency and $l$ represents the orbital momentum of the electron, the associated energies of the system is given by the relation: 
+
+\begin{equation}
+E_{nl} = \hslash\omega\bigg(2n + l + \frac{3}{2}\bigg)
+\end{equation}
+where $n = 0,1,2,...$ and $l= 0,1,2,...$
+
+\medskip
+
+Performing the substitution $R(r) = \frac{1}{r}u(r)$ and introducing a dimensionless variable $\rho = (\frac{1}{\alpha})r$ Equation (\ref{eq:schr}) now reads: 
+\begin{equation}
+    -\frac{\hslash^2}{2m\alph^2}\frac{d^2}{d\rho^2}u(\rho) + \Big(V(\rho) + \frac{l(l+1)}{\rho^2}\frac{\hslash^2}{2m\alpha^2}\Big)u(\rho) = Eu(\rho)
+    \label{eq:schr2}
+\end{equation}
+which has boundary conditions $u(0) = 0, u(\infty)=0$.
+
+\medskip
+
+Throughout this project, the orbital momentum $l$ is set to zero. Making this assumption, one can easily achieve the desirable eigenvalue problem to be studied closer. 
+
+\medskip
+
+Further, by substituting an expression for the harmonic oscillator potential $V(\rho) = \frac{1}{2}k\alpha^2\rho^2$ into Equation (\ref{eq:schr2}) and preform some multiplication and rearranging, the final Schrodinger's equation to be discretized now reads:
+
+\begin{equation}
+-\frac{d^2}{d\rho^2}u(\rho) + \rho^2u(\rho) = \lambda u(\rho)
+\label{eq: schr3}
+\end{equation}
+
+Where $\lambda = \frac{2m\alpha^2}{h^2}E$ (eigenvalue).
+
+\medskip
+
+
+Applying the finite difference approximation obtained from Taylor expansion on the second order derivative, Equation (\ref{eq: schr3}) can be discretized as:
+\begin{equation}
+    -\frac{u_{i+1}-2u_{i} + u_{i-1}}{h^2} 
+    + V_iu_i = \lambda u_i
+\label{eq: schr_dis}
+\end{equation}
+
+With the harmonic oscillator potential defined as $V_i = \rho_i^2$ 
+
+\medskip
+
+Equation (\ref{eq: schr_dis}) can be represented as a matrix eigenvalue problem: 
+
+\[
+\begin{bmatrix}
+	d_0 & e_0 & 0 & 0 & ... & 0 & 0 \\
+	e_1 & d_1 & e_1 & 0 & ... & 0 & 0 \\
+	0 & e_2 & d_2 & e_2 & 0 & ... & 0 \\
+	... & ... & ... & ... & ... & ... & ... \\
+	0 & ... & ... & ... & e_{N-1} & d_{N-1} & e_{N-1} \\
+	0 & ... & ... & ... & ... & e_N & d_N
+\end{bmatrix}
+\begin{bmatrix}
+	u_0 \\  u_1 \\ ... \\ ... \\ ... \\ u_N  
+\end{bmatrix}
+= \lambda
+\begin{bmatrix}
+    u_0 \\  u_1 \\ ... \\ ... \\ ... \\ u_N
+\end{bmatrix}
+\]
+
+The diagonal and non-diagonal matrix elements are defined as $d_i = \frac{2}{h^2}+V_i$ and $e_i = -\frac{1}{h^2}$. One see that the harmonic oscillator potential $V_i$ is added to the diagonal elements. 
+
+\subsection{Two electrons in three dimensions}
+Adding an additionally electron to the potential oscillator yields a new problematic to study. Two different cases are studied. One when there is no Coulomb interaction and another where this interaction is present.  
+
+\medskip
+
+Schrodinger's Equation (\ref{eq:schr}) when there is no Coulomb interaction is now:
+\begin{equation}
+\bigg(-\frac{\hslash^2}{2m}\frac{d^2}{dr_1^2}-\frac{\hslash^2}{2m}\frac{d^2}{dr_2^2}+ \frac{1}{2}kr_1^2 + \frac{1}{2}kr_2^2\bigg)u(r_1,r_2) = E^{(2)}u(r_1,r_2)
+\end{equation}
+
+\medskip
+
+When there is acting a repulsive Coulomb interacting given as:
+
+\begin{equation}
+V(r_1,r_2) = \frac{\beta e^2}{r}
+\end{equation}
+where $ \beta e^2 = 1.44 eVnm$
+This term can then be added to the Schrodinger's equation. Following the same procedure as for the one-electron case in which a dimensionless variable $\rho = \frac{r}{\alpha}$ is introduced and preform some rewriting, the Schrodinger's equation for two electrons case as an eigenvalue problem reads:
+
+\begin{equation}
+    -\frac{d^2}{d\rho^2}\psi(\rho) + \omega_{r}^2\rho^2\psi(\rho) + \frac{1}{\rho} = \lambda\psi(\rho)
+\end{equation}
+
+Where the frequency parameter $\omega_r{}$ indicates the magnitude of the oscillator potential. 
+
+
+
+\medskip 
+
+
+
+
+\section{Results}\label{sec:res}
+
+\subsection{The buckling beam problem}\label{sec:bbp}
+
+Table \ref{tab:1}
+
+\begin{table}[]
+\begin{tabular}{lll}
+\textbf{Size of matrix ($n$):} & \textbf{Number of iterations:} & \textbf{CPU - time (sec):} \\ \hline
+3                             & 10                            & 0.363                     \\
+4                             & 7                             & 0.500                     \\
+10                            & 154                           & 0.392                     \\
+50                            & 4349                          & 0.519                     \\
+100                           & 17660                         & 0.624                     \\
+200                           & 70833                         & 4.01                      \\
+300                           & 160140                        & 19.09                    
+\end{tabular}
+\label{tab:1}
+\caption{Number of similarity transforms (iterations) required to achieve (near) zero-elements on the non-diagonals of a matrix of size $nxn$}
+\end{table}
+
+
+
+\section{Discussion and conclusion}\label{sec:conc}
+
+According to \cite{CompPhys}, one needs typically $3n^2$ to $5n^2$ rotations by the Jacobi method for the method to converge. However, from our results in Table \ref{tab:1}, the method converges after a bit less than approximately $2n^2$ iterations. 
+
+
+In this project we have used Python version 3.6.3. To improve the CPU time we can implement the code in C++. We would expect the 
+
+\newpage
+\bibliographystyle{apalike}
+\bibliography{literature.bib} 
+
+
+\end{document}
